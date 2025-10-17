@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Session Initiation | Zero Trust</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-bg: #0a0a0a;
+            --secondary-bg: #1a1a1a;
+            --accent-green: #10b981;
+            --text-primary: #f3f4f6;
+            --text-secondary: #9ca3af;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--primary-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            margin: 0;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .security-container {
+            background: var(--secondary-bg);
+            max-width: 600px;
+            width: 100%;
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.25);
+        }
+
+        h1 {
+            color: var(--accent-green);
+            font-size: 1.875rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .security-notice {
+            background: rgba(16, 185, 129, 0.1);
+            border-left: 4px solid var(--accent-green);
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 4px;
+        }
+
+        #initButton {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        #initButton:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        #status {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .success { background: rgba(16, 185, 129, 0.1); color: var(--accent-green); }
+        .error { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+    </style>
+</head>
+<body>
+    <div class="security-container">
+        <h1>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            Zero Trust Session Initialization
+        </h1>
+
+        <div class="security-notice">
+            <p>A secure session is being established. Device attributes will be verified through trusted headers.</p>
+        </div>
+
+        <button id="initButton">Initialize Secure Session</button>
+        <div id="status"></div>
+    </div>
+
+    <script>
+        // Wait for DOM to be ready
+        document.addEventListener('DOMContentLoaded', function() {
+            // Collect device data before submitting
+            document.getElementById('initButton').addEventListener('click', function() {
+                const statusElement = document.getElementById('status');
+                statusElement.textContent = 'Collecting device information...';
+                
+                // Gather device fingerprinting data
+                const deviceData = collectDeviceData();
+                
+                // Send data to server
+                fetch('/session/init', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(deviceData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    statusElement.textContent = 'Session established successfully!';
+                    setTimeout(() => window.location.href = '/gateway', 1500);
+                })
+                .catch(error => {
+                    statusElement.textContent = 'Error: ' + error.message;
+                });
+            });
+        });
+        
+        // Comprehensive device data collection
+        function collectDeviceData() {
+            // Screen information
+            const screenData = {
+                width: window.screen.width,
+                height: window.screen.height,
+                colorDepth: window.screen.colorDepth,
+                pixelRatio: window.devicePixelRatio || 1
+            };
+            
+            // Browser plugins
+            const plugins = [];
+            if (navigator.plugins) {
+                for (let i = 0; i < navigator.plugins.length; i++) {
+                    plugins.push(navigator.plugins[i].name);
+                }
+            }
+            
+            // Canvas fingerprinting
+            let canvasFingerprint = null;
+            try {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = 200;
+                canvas.height = 200;
+                
+                // Draw text with various styles
+                ctx.textBaseline = "alphabetic";
+                ctx.fillStyle = "#f60";
+                ctx.fillRect(125, 1, 62, 20);
+                ctx.fillStyle = "#069";
+                ctx.font = "15px 'Arial'";
+                ctx.fillText("ZeroTrust", 2, 15);
+                ctx.fillStyle = "rgba(102, 204, 0, 0.7)";
+                ctx.fillText("Fingerprint", 4, 45);
+                
+                // Get canvas data and hash it
+                const dataURL = canvas.toDataURL();
+                canvasFingerprint = hashString(dataURL);
+            } catch (e) {
+                console.error("Canvas fingerprinting failed:", e);
+            }
+            
+            // WebGL fingerprinting
+            let webglFingerprint = null;
+            try {
+                const canvas = document.createElement('canvas');
+                const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+                if (gl) {
+                    const info = gl.getExtension('WEBGL_debug_renderer_info');
+                    if (info) {
+                        const vendor = gl.getParameter(info.UNMASKED_VENDOR_WEBGL);
+                        const renderer = gl.getParameter(info.UNMASKED_RENDERER_WEBGL);
+                        webglFingerprint = hashString(vendor + ":" + renderer);
+                    }
+                }
+            } catch (e) {
+                console.error("WebGL fingerprinting failed:", e);
+            }
+            
+            // Network information 
+            const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+            const networkInfo = connection ? {
+                connection_type: connection.type,
+                effective_type: connection.effectiveType,
+                rtt: connection.rtt
+            } : {
+                connection_type: null,
+                effective_type: null,
+                rtt: null
+            };
+            
+            // Simple string hashing function
+            function hashString(str) {
+                let hash = 0;
+                for (let i = 0; i < str.length; i++) {
+                    const char = str.charCodeAt(i);
+                    hash = ((hash << 5) - hash) + char;
+                    hash = hash & hash;
+                }
+                return hash.toString(16);
+            }
+            
+            // Return comprehensive device data
+            return {
+                // User agent components
+                userAgent: navigator.userAgent,
+                platform: navigator.platform,
+                vendor: navigator.vendor,
+                
+                // Language settings
+                languages: navigator.languages || [navigator.language || navigator.userLanguage],
+                
+                // Device characteristics
+                screen: screenData,
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                plugins: plugins,
+                canvas_fp: canvasFingerprint,
+                webgl_fp: webglFingerprint,
+                
+                // Network information
+                network: networkInfo,
+                
+                // Note: MAC and hostname cannot be reliably collected from browser JS
+                hostname: window.location.hostname // This is the server's hostname, not client's
+            };
+        }
+    </script>
+    
+</body>
+</html>

@@ -1,0 +1,159 @@
+# /etc/nginx/sites-available/zerotrust_proxy
+
+# Define allowed IP ranges (adjust to your network)
+geo $allowed_ip {
+    default 0;       # Deny by default
+    127.0.0.1 1;     # Allow localhost (IPv4)
+    ::1       1;     # Allow localhost (IPv6)
+    192.168.22.0/24 1; # Example Admin Range
+    192.168.23.0/24 1; # Example Analyst Range
+    10.10.0.0/16 1;   # Example Guest Range
+}
+
+# Upstream definitions
+upstream flask_session_manager {
+    server 127.0.0.1:5000; # Session Manager App
+    # keepalive 32;
+}
+upstream gradio_ai_scanner {
+    server 127.0.0.1:5001; # AI Scanner App (Gradio/Flask)
+    # keepalive 32;
+}
+
+# Redirect HTTP to HTTPS
+server {
+    listen 80;
+    server_name localhost your_domain.com; # Replace with your domain
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name localhost your_domain.com; # Replace with your domain
+
+    # TLS Configuration
+    ssl_certificate /etc/nginx/ssl/zerotrust_proxy.crt;
+    ssl_certificate_key /etc/nginx/ssl/zerotrust_proxy.key;
+    # ... other ssl settings ...
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384';
+    ssl_prefer_server_ciphers off;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 1d;
+    ssl_session_tickets off;
+
+    # Network Layer Security
+    if ($allowed_ip = 0) { return 403; }
+
+    # --- Specific Flask Session Manager Endpoints ---
+    # These locations are handled directly by flask_session_manager
+    location = /session/init {
+        proxy_pass http://flask_session_manager;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_buffering off;
+        proxy_set_header X-Device-MAC $http_x_device_mac;
+        proxy_set_header X-Device-Hostname $http_x_device_hostname;
+    }
+    location = /session/check {
+        proxy_pass http://flask_session_manager;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_buffering off;
+        proxy_set_header X-Device-MAC $http_x_device_mac;
+        proxy_set_header X-Device-Hostname $http_x_device_hostname;
+    }
+    location = /register {
+        proxy_pass http://flask_session_manager;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_buffering off;
+    }
+    location = /admin {
+        allow 127.0.0.1; allow ::1; deny all; # IP restriction
+        auth_request /auth/verify;             # Session verification
+        error_page 401 = @handle_unauthorized;
+        error_page 403 = @handle_forbidden;
+        error_page 503 = @handle_service_unavailable;
+        proxy_pass http://flask_session_manager;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr; # Keep real IP for Flask check
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_buffering off;
+    }
+
+    # --- Session Verification Endpoint (Internal for Nginx) ---
+    location = /auth/verify {
+        internal;
+        proxy_pass http://flask_session_manager/session/verify; # Check session with manager
+        proxy_pass_request_body off;
+        proxy_set_header Content-Length "";
+        proxy_set_header X-Original-URI $request_uri;
+        proxy_set_header X-Original-Method $request_method;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Device-MAC $http_x_device_mac;
+        proxy_set_header X-Device-Hostname $http_x_device_hostname;
+    }
+
+    # --- Main Protected Location (Handles AI Scanner / Gradio App) ---
+    # This block catches requests for '/', '/chat/...', '/static/...', etc.
+    # that are not handled by the specific locations above.
+    location / {
+        # Step 1: Authenticate & Authorize via Session Manager
+        auth_request /auth/verify;
+
+        # Capture headers FROM the auth request response (Session Manager)
+        auth_request_set $auth_session_id $upstream_http_x_zt_session_id;
+        auth_request_set $auth_user_id $upstream_http_x_zt_user_id;
+        auth_request_set $auth_user_role $upstream_http_x_zt_user_role;
+        auth_request_set $auth_access_level $upstream_http_x_zt_access_level;
+
+        # Handle authentication/authorization failures
+        error_page 401 = @handle_unauthorized; # Invalid/Expired Session
+        error_page 403 = @handle_forbidden;   # Role Forbidden by Session Mgr
+        error_page 503 = @handle_service_unavailable; # Session Mgr unavailable
+
+        # Step 2: If Auth Succeeded (2xx from /auth/verify), proxy to AI Scanner App
+        proxy_pass http://gradio_ai_scanner; # Route to the AI Scanner (Port 5001)
+
+        # Set Headers FOR the AI Scanner App request
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_buffering off;
+        # WebSocket support (Often needed for Gradio interactive elements)
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+
+        # Pass validated authentication context TO the AI Scanner App
+        proxy_set_header X-Auth-Session-ID $auth_session_id;
+        proxy_set_header X-Auth-User-ID $auth_user_id;
+        proxy_set_header X-Auth-User-Role $auth_user_role; # <-- This is read by app.py
+        proxy_set_header X-Auth-Access-Level $auth_access_level;
+    }
+
+    # --- Error Handling Named Locations ---
+    location @handle_unauthorized { return 302 /session/init; }
+    location @handle_forbidden { return 403; }
+    location @handle_service_unavailable { return 503 "Authentication service unavailable."; }
+
+    # Logging
+    access_log /var/log/nginx/zerotrust_proxy_access.log;
+    error_log /var/log/nginx/zerotrust_proxy_error.log warn;
+}

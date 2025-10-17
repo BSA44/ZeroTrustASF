@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>> ZT :: {% block title %}Corporate Dashboard{% endblock %}</title>
+    <!-- Link the main stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* Add specific styles for the base layout */
+        body {
+            /* style.css already handles background, color, font, display:flex */
+            align-items: center; /* Center container horizontally */
+        }
+        .terminal-main-container {
+            width: 95%;
+            max-width: 1000px; /* Max width for content */
+            min-height: 80vh; /* Minimum height */
+            padding: 20px;
+            margin-top: 20px; /* Space from top */
+            margin-bottom: 20px; /* Space from bottom */
+            border: 1px solid #00FF00;
+            background-color: #000;
+            color: #00FF00;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Navigation Styles */
+        nav {
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px dashed #00FF00; /* Dashed separator */
+            display: flex; /* Align items horizontally */
+            justify-content: space-between; /* Space out nav links and logout */
+            align-items: center;
+        }
+        nav .links a {
+            margin-right: 20px;
+            text-decoration: none;
+            color: #00FF00; /* Green links */
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9em;
+        }
+        nav .links a:hover, nav .links a:focus {
+            color: #99FF99; /* Lighter green on hover */
+            text-decoration: underline;
+            text-decoration-color: #00FF00;
+        }
+
+        /* Logout Button Styling */
+        .terminal-logout-button {
+            padding: 5px 10px; /* Smaller button */
+            background-color: #000000;
+            color: #FF0000; /* Red text for logout */
+            border: 1px solid #FF0000; /* Red border */
+            border-radius: 0;
+            cursor: pointer;
+            font-size: 0.8em;
+            font-family: 'Courier New', Courier, monospace;
+            transition: background-color 0.2s ease, color 0.2s ease;
+            text-transform: uppercase;
+        }
+        .terminal-logout-button:hover {
+            background-color: #330000; /* Dark red background */
+            color: #FF9999; /* Lighter red text */
+        }
+
+        /* Flash Message Styles */
+        .flashes {
+            margin-bottom: 15px;
+            padding-left: 0; /* Remove default list padding */
+            list-style: none; /* Remove default list bullets */
+        }
+        .alert {
+            padding: 10px 15px;
+            border: 1px dashed #00FF00;
+            border-radius: 0;
+            margin-bottom: 10px;
+            background-color: #001a00;
+            color: #00FF00;
+            font-size: 0.9em;
+        }
+        .alert::before {
+            content: '>> '; /* Add prompt indicator */
+        }
+        /* Optional: Different border styles for categories */
+        .alert-warning { border-style: solid; border-color: #ffff00; color: #ffff00; background-color: #333300; }
+        .alert-danger { border-style: solid; border-color: #ff0000; color: #ff0000; background-color: #330000; }
+        .alert-info { border-style: dashed; border-color: #00ffff; color: #00ffff; background-color: #003333;}
+        .alert-success { border-style: solid; border-color: #00FF00; color: #00FF00; background-color: #003300;}
+
+        /* Main content area */
+        .content-area {
+            flex-grow: 1; /* Allow content area to take remaining space */
+        }
+    </style>
+</head>
+<body>
+    <div class="terminal-main-container">
+        <!-- Navigation Section -->
+        <nav>
+            <div class="links">
+                <a href="{{ url_for('dashboard') }}">[ Dashboard ]</a>
+                <a href="{{ url_for('profile') }}">[ Profile ]</a>
+                <!-- Add other nav links here -->
+            </div>
+            <div class="logout">
+                <form action="{{ url_for('logout') }}" method="post" style="display: inline;">
+                    <button type="submit" class="terminal-logout-button">[ Logout ]</button>
+                </form>
+            </div>
+        </nav>
+
+        <!-- Flash Messages Section -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="flashes">
+                {% for category, message in messages %}
+                    <li class="alert alert-{{ category }}">{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Main Content Block -->
+        <div class="content-area">
+            {% block content %}{% endblock %}
+        </div>
+
+    </div> <!-- End terminal-main-container -->
+
+    <script src="../static/sesssion_check.js"></script>
+</body>
+</html>

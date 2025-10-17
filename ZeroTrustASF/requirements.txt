@@ -1,0 +1,10 @@
+# requirements.txt
+flask
+redis
+python-dotenv
+gunicorn # Recommended for running Flask in production-like manner
+requests # For potential client testing/interaction later
+pyOpenSSL # Needed for Flask dev server HTTPS if not using Gunicorn/NGINX directly
+cryptography # For HMAC
+gradio # The AI Scanner component
+getmac

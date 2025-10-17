@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}:: {{ data.role|upper }} Access ::{% endblock %}
+
+{% block content %}
+    <style>
+        /* Specific styles for dashboard elements */
+        .dashboard-header h1 {
+            color: #00FF00;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 1.5em; /* Slightly larger */
+            border-bottom: 1px solid #00FF00;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+            display: inline-block; /* Fit border to text */
+        }
+        .dashboard-header .welcome-text {
+            color: #00FF00;
+            margin-bottom: 25px;
+            font-size: 1.1em;
+        }
+        .dashboard-header .welcome-text strong {
+            color: #99FF99; /* Highlight user/role */
+        }
+         .dashboard-header .welcome-text::before {
+            content: '> ';
+         }
+
+        .widgets-section h2 {
+            color: #00FF00;
+            text-transform: uppercase;
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+            border-bottom: 1px dashed #00FF00;
+            padding-bottom: 5px;
+        }
+
+        /* Widget Styling */
+        .widget {
+            border: 1px dashed #00FF00; /* Dashed green border */
+            margin-bottom: 20px;
+            padding: 15px 20px;
+            border-radius: 0; /* Sharp corners */
+            background: #000; /* Black background */
+            color: #00FF00; /* Green text */
+        }
+        .widget h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: #99FF99; /* Lighter green for widget titles */
+            text-transform: uppercase;
+            font-size: 1em;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #003300; /* Dark green subtle separator */
+            padding-bottom: 5px;
+        }
+         .widget h3::before {
+             content: '[ ';
+         }
+         .widget h3::after {
+             content: ' ]';
+         }
+        .widget p {
+            color: #00FF00; /* Standard green */
+            line-height: 1.6;
+            font-size: 0.95em;
+            margin-bottom: 5px; /* Reduce bottom margin */
+        }
+         .widget p::before {
+             content: '  > '; /* Indent widget content text */
+             opacity: 0.7; /* Make prompt slightly less prominent */
+         }
+    </style>
+
+    <div class="dashboard-header">
+        <h1>{{ data.title }}</h1>
+        <p class="welcome-text">User: <strong>{{ data.user_id }}</strong> | Role: <strong>{{ data.role }}</strong></p>
+    </div>
+
+    <div class="widgets-section">
+        <h2>Available Modules</h2>
+        {% if data.widgets %}
+            {% for widget in data.widgets %}
+                <div class="widget" id="widget-{{ widget.id }}">
+                    <h3>{{ widget.title }}</h3>
+                    <p>{{ widget.content }}</p>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>> No modules available for current clearance level.</p>
+        {% endif %}
+    </div>
+    <script src="../static/sesssion_check.js"></script>
+{% endblock %}

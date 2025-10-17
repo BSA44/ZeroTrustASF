@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Panel - Generate Analyst Invite</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; }
+        .message { padding: 10px; margin-bottom: 15px; border-radius: 4px; }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .invite-link { margin-top: 15px; padding: 10px; background-color: #e9ecef; border: 1px solid #ced4da; border-radius: 4px; word-wrap: break-word; }
+        code { background-color: #f8f9fa; padding: 2px 4px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <h1>Admin Panel</h1>
+    <p>Generate a single-use invite link for a new Analyst.</p>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="message {{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <!-- Display generated link -->
+    {% if invite_link %}
+    <div class="invite-link">
+        <strong>Invite Link (Expires in {{ expiration_minutes }} minutes):</strong><br>
+        <code>{{ invite_link }}</code>
+        <p><small>Share this link with the new analyst. It can only be used once.</small></p>
+    </div>
+    {% endif %}
+
+    <!-- Display error message if POST failed -->
+    {% if error_message and not invite_link %}
+     <div class="message error">{{ error_message }}</div>
+    {% endif %}
+
+
+    <!-- Button to generate link -->
+    <form method="POST" action="{{ url_for('admin_invite_page') }}">
+        <button type="submit">Generate New Analyst Invite Link</button>
+    </form>
+
+</body>
+</html>

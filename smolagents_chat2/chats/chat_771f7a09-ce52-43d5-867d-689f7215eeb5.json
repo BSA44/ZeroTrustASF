@@ -1,0 +1,31 @@
+{
+  "id": "771f7a09-ce52-43d5-867d-689f7215eeb5",
+  "created_at": "2025-04-20T03:36:55.001333",
+  "messages": [
+    {
+      "sender": "user",
+      "content": "scan the 192.168.22.0/24 network for hosts"
+    },
+    {
+      "sender": "agent",
+      "content": "**Agent Warning:** Processing stopped after 12 reasoning steps (limit: 12) to prevent excessive complexity or potential loops.\n\n**Partial Log & Results (up to limit):**\n---------------------------------------\nStep 1: [Content/Thought] T\nStep 2: [Content/Thought] h\nStep 3: [Content/Thought] e\nStep 4: [Content/Thought]  \nStep 5: [Content/Thought] s\nStep 6: [Content/Thought] c\nStep 7: [Content/Thought] a\nStep 8: [Content/Thought] n\nStep 9: [Content/Thought]  \nStep 10: [Content/Thought] o\nStep 11: [Content/Thought] f\nStep 12: [Content/Thought]  \n---------------------------------------"
+    },
+    {
+      "sender": "user",
+      "content": "scan the 192.168.22.0/24 network for hosts"
+    },
+    {
+      "sender": "agent",
+      "content": "Active hosts found in the network 192.168.22.0/24 are: 192.168.22.25, 192.168.22.30, and 192.168.22.49."
+    },
+    {
+      "sender": "user",
+      "content": "scan the 192.168.22.30 for ports in fastest way"
+    },
+    {
+      "sender": "agent",
+      "content": "Sorry, I encountered an error (AgentGenerationError) and couldn't complete your request. Please check the application logs for details."
+    }
+  ],
+  "last_updated": "2025-04-20T03:45:42.347809"
+}

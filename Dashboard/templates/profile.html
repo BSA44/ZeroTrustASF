@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}:: User Profile ::{% endblock %}
+
+{% block content %}
+<style>
+    /* Specific styles for profile page elements */
+    .profile-header h1 {
+        color: #00FF00;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 1.5em;
+        border-bottom: 1px solid #00FF00;
+        padding-bottom: 5px;
+        margin-bottom: 25px; /* More space after header */
+        display: inline-block;
+    }
+     .profile-header h1::before {
+        content: '// ';
+        opacity: 0.7;
+     }
+     .profile-header h1::after {
+        content: ' //';
+        opacity: 0.7;
+     }
+
+
+    /* Styling for the profile data display */
+    .profile-data {
+        border: 1px dashed #00FF00;
+        padding: 20px 25px;
+        margin-top: 10px;
+        background-color: #000; /* Ensure black background */
+    }
+
+    .profile-data dl {
+        margin: 0;
+        padding: 0;
+    }
+
+    .profile-data dt { /* Data Term (Label) */
+        color: #99FF99; /* Lighter green for labels */
+        text-transform: uppercase;
+        font-size: 0.9em;
+        letter-spacing: 0.5px;
+        margin-bottom: 3px;
+        width: 150px; /* Fixed width for alignment */
+        display: inline-block; /* Allow width */
+        /* vertical-align: top; */
+    }
+    .profile-data dt::before {
+        content: '$ '; /* Prompt for labels */
+        color: #00aa00; /* Dimmer green for prompt */
+    }
+
+    .profile-data dd { /* Data Definition (Value) */
+        color: #00FF00; /* Bright green for values */
+        margin-left: 0; /* Reset default margin */
+        margin-bottom: 12px; /* Space between items */
+        font-size: 1em;
+        word-wrap: break-word; /* Wrap long values like session ID */
+        display: inline-block; /* Keep on same line as dt if space allows */
+        /* If you prefer value below label: */
+        /* display: block; margin-left: 20px; margin-bottom: 15px; */
+    }
+
+    /* Optional: Add a separator line */
+    .profile-data hr {
+        border: none;
+        border-top: 1px dashed #003300; /* Dark dashed line */
+        margin: 15px 0;
+    }
+
+</style>
+
+<div class="profile-header">
+    <h1>User Credentials</h1>
+</div>
+
+<div class="profile-data">
+    <dl>
+        <dt>User ID</dt>
+        <dd>{{ user_id }}</dd>
+
+        <dt>Assigned Role</dt>
+        <dd>{{ role }}</dd>
+
+        <hr> <!-- Optional Separator -->
+
+        <dt>Current Session</dt>
+        <dd>{{ session_id }}</dd>
+
+        <!-- Add more profile details here if available/needed -->
+        <!-- Example:
+        <dt>Last Login</dt>
+        <dd>PLACEHOLDER_DATE</dd>
+        -->
+    </dl>
+</div>
+
+<p style="margin-top: 30px; color: #00aa00; font-size: 0.9em;">> End of profile data transmission.</p>
+<script src="../static/sesssion_check.js"></script>
+{% endblock %}

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smol Agent Chat - Hacker Style</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- Include highlight.js (keep as before) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/a11y-dark.min.css"> <!-- Hacker theme -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/bash.min.js"></script>
+    <!-- Add other languages if needed -->
+</head>
+<body>
+    <!-- Embed initial data from Flask -->
+    <script id="initial-data" type="application/json">
+        {{ {'chats': chats, 'permissions': permissions} | tojson | safe }}
+    </script>
+
+    <div id="app-container">
+        <!-- Sidebar for Chat History -->
+        <div id="sidebar">
+            <div id="sidebar-header">
+                <h2>Chat History</h2>
+                 <!-- Only show button if user has permission -->
+                {% if permissions.can_create_chat %}
+                <button id="new-chat-button" title="Create New Chat">+</button>
+                {% endif %}
+            </div>
+            <ul id="chat-list">
+                <!-- Chat list items will be populated by JS -->
+                 <li class="no-chats">No chats found.</li> <!-- Placeholder -->
+            </ul>
+             <div id="user-role-info">
+                Role: {{ permissions.role }}
+                <span class="tooltip"> (Permissions based on zt-session cookie. INSECURE DEMO)</span>
+            </div>
+        </div>
+
+        <!-- Main Chat Area -->
+        <div id="main-chat-area">
+            <div id="chat-container">
+                <div id="chat-output">
+                    <!-- Messages will appear here for the selected chat -->
+                     <div class="message system">
+                        <div class="message-content">Select a chat from the list or create a new one.</div>
+                    </div>
+                </div>
+                <div id="input-area">
+                     <!-- Disable input if user cannot create/send messages OR no chat selected -->
+                    <textarea id="message-input" placeholder="Select a chat to send message..." rows="3" disabled></textarea>
+                    <button id="send-button" disabled>Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

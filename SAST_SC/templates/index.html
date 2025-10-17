@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solidity Smart Contract SAST Analyzer</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+        .code-editor {
+            font-family: monospace;
+            min-height: 300px;
+            resize: vertical;
+        }
+        .result-container {
+            margin-top: 2rem;
+            display: none;
+        }
+        .vulnerability-card {
+            margin-bottom: 1rem;
+        }
+        .critical {
+            border-left: 5px solid #dc3545;
+        }
+        .high {
+            border-left: 5px solid #fd7e14;
+        }
+        .medium {
+            border-left: 5px solid #ffc107;
+        }
+        .low {
+            border-left: 5px solid #20c997;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="pb-3 mb-4 border-bottom">
+            <h1 class="display-5 fw-bold">Solidity SAST Analyzer</h1>
+            <p class="lead">Static Application Security Testing for Solidity Smart Contracts using GPT-4o</p>
+        </header>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h2 class="card-title h5 mb-0">Smart Contract Code</h2>
+                    </div>
+                    <div class="card-body">
+                        <textarea id="codeInput" class="form-control code-editor" placeholder="Paste your Solidity smart contract code here..."></textarea>
+                    </div>
+                    <div class="card-footer">
+                        <button id="analyzeBtn" class="btn btn-primary">Analyze Contract</button>
+                        <button id="clearBtn" class="btn btn-secondary">Clear</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="loading" class="loading">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Analyzing smart contract for vulnerabilities...</p>
+        </div>
+
+        <div id="resultContainer" class="result-container">
+            <h2 class="h4 mb-3">Vulnerability Analysis Results</h2>
+            <div id="errorMessage" class="alert alert-danger" style="display: none;"></div>
+            <div id="vulnerabilitiesList"></div>
+            <div id="noVulnerabilities" class="alert alert-success" style="display: none;">
+                No vulnerabilities were detected in this smart contract. However, this doesn't guarantee the contract is completely secure. Always conduct thorough security audits.
+            </div>
+        </div>
+
+        <footer class="pt-3 mt-4 text-muted border-top">
+            <p>Note: This tool uses AI to analyze Solidity code for potential vulnerabilities. Results should be verified by security professionals.</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const codeInput = document.getElementById('codeInput');
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            const clearBtn = document.getElementById('clearBtn');
+            const loading = document.getElementById('loading');
+            const resultContainer = document.getElementById('resultContainer');
+            const vulnerabilitiesList = document.getElementById('vulnerabilitiesList');
+            const noVulnerabilities = document.getElementById('noVulnerabilities');
+            const errorMessage = document.getElementById('errorMessage');
+
+            // Analyze button click handler
+            analyzeBtn.addEventListener('click', async function() {
+                const code = codeInput.value.trim();
+                if (!code) {
+                    alert('Please enter Solidity code to analyze.');
+                    return;
+                }
+
+                // Show loading state
+                loading.style.display = 'block';
+                resultContainer.style.display = 'none';
+                analyzeBtn.disabled = true;
+
+                try {
+                    // Send code to server for analysis
+                    const response = await fetch('/analyze', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ code }),
+                    });
+
+                    const result = await response.json();
+
+                    // Hide loading state
+                    loading.style.display = 'none';
+                    resultContainer.style.display = 'block';
+                    analyzeBtn.disabled = false;
+
+                    if (!result.success) {
+                        errorMessage.textContent = `Error: ${result.error}`;
+                        errorMessage.style.display = 'block';
+                        vulnerabilitiesList.innerHTML = '';
+                        noVulnerabilities.style.display = 'none';
+                        return;
+                    }
+
+                    errorMessage.style.display = 'none';
+
+                    try {
+                        // Try to parse the analysis as JSON
+                        let analysisData;
+                        
+                        // Check if result.analysis is already an object
+                        if (typeof result.analysis === 'object') {
+                            analysisData = result.analysis;
+                        } else {
+                            // Try to extract JSON from the text response
+                            const jsonMatch = result.analysis.match(/``````/) || 
+                                            result.analysis.match(/\{[\s\S]*\}/);
+                            
+                            if (jsonMatch) {
+                                analysisData = JSON.parse(jsonMatch[1] || jsonMatch[0]);
+                            } else {
+                                // If no JSON found, display the raw text
+                                vulnerabilitiesList.innerHTML = `<div class="alert alert-info">${result.analysis.replace(/\n/g, '<br>')}</div>`;
+                                noVulnerabilities.style.display = 'none';
+                                return;
+                            }
+                        }
+
+                        if (!analysisData.vulnerabilities || analysisData.vulnerabilities.length === 0) {
+                            vulnerabilitiesList.innerHTML = '';
+                            noVulnerabilities.style.display = 'block';
+                            return;
+                        }
+
+                        // Display the vulnerabilities
+                        noVulnerabilities.style.display = 'none';
+                        vulnerabilitiesList.innerHTML = '';
+
+                        analysisData.vulnerabilities.forEach(vuln => {
+                            const severityClass = vuln.severity.toLowerCase();
+                            
+                            const card = document.createElement('div');
+                            card.className = `card vulnerability-card ${severityClass}`;
+                            
+                            card.innerHTML = `
+                                <div class="card-header">
+                                    <h3 class="card-title h5 mb-0">${vuln.type}</h3>
+                                    <span class="badge bg-${getSeverityColor(vuln.severity)}">${vuln.severity}</span>
+                                </div>
+                                <div class="card-body">
+                                    <h4 class="h6">Location:</h4>
+                                    <pre>${vuln.location}</pre>
+                                    <h4 class="h6">Description:</h4>
+                                    <p>${vuln.description}</p>
+                                    <h4 class="h6">Recommendation:</h4>
+                                    <p>${vuln.recommendation}</p>
+                                </div>
+                            `;
+                            
+                            vulnerabilitiesList.appendChild(card);
+                        });
+                    } catch (error) {
+                        console.error("Error parsing analysis:", error);
+                        vulnerabilitiesList.innerHTML = `<div class="alert alert-info">${result.analysis.replace(/\n/g, '<br>')}</div>`;
+                    }
+                } catch (error) {
+                    console.error("Error:", error);
+                    loading.style.display = 'none';
+                    resultContainer.style.display = 'block';
+                    analyzeBtn.disabled = false;
+                    
+                    errorMessage.textContent = `Error communicating with the server: ${error.message}`;
+                    errorMessage.style.display = 'block';
+                    vulnerabilitiesList.innerHTML = '';
+                    noVulnerabilities.style.display = 'none';
+                }
+            });
+
+            // Clear button click handler
+            clearBtn.addEventListener('click', function() {
+                codeInput.value = '';
+                resultContainer.style.display = 'none';
+            });
+
+            // Helper function to get color based on severity
+            function getSeverityColor(severity) {
+                severity = severity.toLowerCase();
+                if (severity === 'critical') return 'danger';
+                if (severity === 'high') return 'warning';
+                if (severity === 'medium') return 'info';
+                if (severity === 'low') return 'success';
+                return 'secondary';
+            }
+        });
+    </script>
+</body>
+</html>

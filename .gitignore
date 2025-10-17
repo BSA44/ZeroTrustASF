@@ -1,0 +1,4 @@
+venv/
+*.tar.gz
+*/.env
+smolagents_chat2/.env
