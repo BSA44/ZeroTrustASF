@@ -16,7 +16,7 @@ ZeroTrustASF is a multi-service cybersecurity platform built during the Rector's
 
 Key concepts:
 - **Session Manager ()** creates signed session envelopes, ties them to request context, refreshes TTL on each hit, and exposes , , , , and admin tooling.
-- **Nginx** performs the first hop of the Zero Trust flow: geo-based IP gating, TLS termination, and the  handshake that either routes traffic or redirects users to .
+- **Nginx** performs the first hop of the Zero Trust flow: geo-based IP gating, TLS termination, and the  handshake that either routes traffic or redirects users to the login page.
 - **Downstream apps** read Redis directly (dashboard) or trust the headers injected by Nginx after successful verification (SAST, SmolAgents, AI scanner).
 
 ## Prerequisites
