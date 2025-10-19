@@ -1,5 +1,7 @@
 # ZeroTrustASF Hackathon Platform
 
+>"ZeroTrustASF takes its name after its founding members: [Amir](https://github.com/Delinester), [Sarvar](https://github.com/BSA44), and [Farrukh](https://github.com/farruhilhamov). We are a team of three students from the Inha University in Tashkent, Estonia, who are passionate about cybersecurity and software development."
+
 ZeroTrustASF is a multi-service cybersecurity platform built during the Rector's Cup hackathon (1st place, Cybersecurity track). It demonstrates how a Zero Trust perimeter can front real applications by combining device/session attestation, continuous verification, and role-based policy enforcement. The project stitches together four apps, Redis-backed session state, and an Nginx reverse proxy into a cohesive demo stack you can run locally.
 
 ## Highlights
@@ -9,13 +11,8 @@ ZeroTrustASF is a multi-service cybersecurity platform built during the Rector's
 - 🧰 **Invite-based onboarding** and IP-based RBAC rules enforced centrally in Flask and mirrored at the edge by Nginx.
 - ⚙️ **Production-style deployment** guidance with TLS termination, geo ACLs, proxy headers, and extensible policy hooks.
 
-## Repository Layout
-
-
 
 ## Architecture Overview
-
-
 
 Key concepts:
 - **Session Manager ()** creates signed session envelopes, ties them to request context, refreshes TTL on each hit, and exposes , , , , and admin tooling.
