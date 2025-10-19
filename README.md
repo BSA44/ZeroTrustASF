@@ -95,53 +95,8 @@
   - OpenAI or DeepSeek API key (for SAST and Smol Agents features)
   - Telegram bot token (optional, for SmolAgents integration)
 
-## 🚀 Quick Start
 
-### 1. Clone the Repository
-
-```bash
-git clone https://github.com/yourusername/ZeroTrustASF.git
-cd ZeroTrustASF
-```
-
-### 2. Install Dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-### 3. Configure Environment Variables
-
-Create a `.env` file in the project root:
-
-```env
-REDIS_HOST=localhost
-REDIS_PORT=6379
-REDIS_DB=0
-
-OPENAI_API_KEY=your_openai_api_key_here
-# OR
-DEEPSEEK_API_KEY=your_deepseek_api_key_here
-
-# Optional
-TELEGRAM_BOT_TOKEN=your_telegram_bot_token_here
-```
-
-### 4. Start Redis
-
-```bash
-redis-server
-```
-
-### 5. Run the Application
-
-```bash
-python app.py
-```
-
-### 6. Configure Nginx (Production)
-
-See the [Deployment Guide](#-deployment) section below for Nginx configuration details.
+___
 
 ## 🔧 Configuration
 
@@ -187,6 +142,29 @@ python ZeroTrustASF/app.py
 python SAST_SC/app.py
 python smolagents_chat2/app.py
 ```
+4. Configure Environment Variables
+
+Create a `.env` file in the project root:
+
+```env
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_DB=0
+
+OPENAI_API_KEY=your_openai_api_key_here
+# OR
+DEEPSEEK_API_KEY=your_deepseek_api_key_here
+
+# Optional
+TELEGRAM_BOT_TOKEN=your_telegram_bot_token_here
+```
+
+5. Start Redis
+
+```bash
+redis-server
+```
+
 ___
 
 ## 👥 Team
