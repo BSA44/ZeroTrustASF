@@ -169,12 +169,7 @@ ___
 
 ## 👥 Team
 
-- **[Amir](https://github.com/Delinester)** - Backend & Security Architecture
-- **[Sarvar](https://github.com/BSA44)** - Infrastructure & DevOps
-- **[Farrukh](https://github.com/farruhilhamov)** - Frontend & Integration
-
-
-## 📬 Contact
-
-For questions or collaboration opportunities, reach out to our team members via GitHub.
+- **[Amir](https://github.com/Delinester)** - Nginx Reverse Proxy configuration and Session Manager implementation
+- **[Sarvar](https://github.com/BSA44)** - Smol Agents Co-pilot implementation
+- **[Farrukh](https://github.com/farruhilhamov)** -  SAST Scanner implementation
 
